@@ -1,0 +1,729 @@
+<title>야근 확정 룰렛</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --bg:#0d0e14;
+    --surface:#1c1f2b;
+    --surface-2:#242838;
+    --text:#f3f1ea;
+    --muted:#9198ad;
+    --accent:#ff6a3d;
+    --accent-2:#ff3d6e;
+    --accent-dim:#3a2a22;
+    --gold:#ffd23f;
+    --danger:#ff4d5e;
+    --border:#2e3244;
+    --card:#ffffff;
+    --card-text:#1a1a1a;
+    --card-muted:#8b8b8b;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{background:var(--bg);}
+  body{
+    margin:0;
+    color:var(--text);
+    font-family:"Noto Sans KR",-apple-system,sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  .display{font-family:"Black Han Sans","Noto Sans KR",sans-serif;}
+
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100%;
+    position:relative;
+  }
+
+  /* ---------- fake storefront backdrop ---------- */
+  .storefront{
+    padding:14px 16px 40px;
+    filter:saturate(1.05);
+  }
+  .store-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:12px;
+  }
+  .store-nav .logo{font-weight:900;font-size:16px;letter-spacing:.02em;color:var(--gold);}
+  .store-nav .icons{display:flex;gap:14px;font-size:16px;color:var(--muted);}
+  .store-hero{
+    background:linear-gradient(120deg,#3a1f14,#241827);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .store-hero .tag{font-size:11px;color:var(--gold);font-weight:700;}
+  .store-hero .big{
+    font-size:28px;
+    font-weight:900;
+    color:#fff;
+    margin:4px 0;
+    letter-spacing:-.01em;
+  }
+  .store-hero .sub{font-size:11.5px;color:var(--muted);}
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+  .pcard{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px;
+  }
+  .pcard .thumb{
+    height:64px;
+    border-radius:8px;
+    background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;
+    margin-bottom:8px;
+  }
+  .pcard .name{font-size:11.5px;font-weight:500;line-height:1.35;height:2.7em;overflow:hidden;}
+  .pcard .price{font-size:13px;font-weight:800;margin-top:6px;}
+  .pcard .off{font-size:10px;color:var(--danger);font-weight:700;margin-left:4px;}
+
+  /* ---------- scrim over storefront ---------- */
+  .scrim{
+    position:fixed;
+    inset:0;
+    background:rgba(6,6,10,.72);
+    backdrop-filter:blur(2px);
+    z-index:5;
+  }
+
+  /* ---------- confetti canvas ---------- */
+  #confetti{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    pointer-events:none;
+  }
+
+  /* ---------- stage (everything interactive floats here) ---------- */
+  .stage{
+    position:fixed;
+    inset:0;
+    z-index:10;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px));
+    overflow-y:auto;
+  }
+  .stage-inner{width:100%;max-width:420px;margin:0 auto;}
+
+  .install-bar{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:14px;
+  }
+  .install-bar .icon{
+    width:38px;height:38px;border-radius:10px;
+    background:linear-gradient(160deg,var(--gold),var(--accent));
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;flex:0 0 auto;
+  }
+  .install-bar .txt{flex:1;min-width:0;}
+  .install-bar .txt b{display:block;font-size:12.5px;}
+  .install-bar .txt span{display:block;font-size:10.5px;color:var(--muted);}
+  .install-bar .x{color:var(--muted);font-size:16px;padding:4px;cursor:pointer;}
+
+  .neon{
+    text-align:center;
+    font-size:21px;
+    line-height:1.3;
+    margin:6px 0 16px;
+    color:#fff8e6;
+    text-shadow:0 0 6px rgba(255,210,63,.85), 0 0 18px rgba(255,106,61,.6), 0 0 34px rgba(255,61,110,.35);
+    opacity:0;
+    transform:scale(.85);
+  }
+  @keyframes flicker{
+    0%,100%{opacity:1;} 45%{opacity:.86;} 50%{opacity:1;} 72%{opacity:.9;}
+  }
+  @keyframes neonPop{
+    0%{opacity:0;transform:scale(.7);}
+    55%{opacity:1;transform:scale(1.08);}
+    100%{opacity:1;transform:scale(1);}
+  }
+  .neon.reveal{animation:neonPop .5s cubic-bezier(.2,.9,.3,1.3) forwards, flicker 2.6s 0.5s infinite;}
+
+  .wheel-card{
+    background:rgba(28,31,43,.9);
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:18px 16px 20px;
+    text-align:center;
+    transition:opacity .4s ease, filter .4s ease;
+  }
+  .wheel-card.dim{opacity:.35;filter:blur(1px) saturate(.6);}
+  .wheel-card .eyebrow{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:.06em;margin-bottom:2px;}
+  .wheel-card .timer{
+    display:flex;justify-content:center;align-items:center;gap:6px;
+    margin:2px auto 12px;width:fit-content;
+    padding:5px 12px;border-radius:999px;
+    background:var(--surface-2);border:1px solid var(--border);
+    font-size:11.5px;color:var(--muted);
+  }
+  .wheel-card .timer b{color:var(--danger);font-variant-numeric:tabular-nums;font-weight:700;}
+
+  .wheel-zone{position:relative;display:flex;justify-content:center;margin-bottom:16px;}
+  .pin{
+    position:absolute;top:-4px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:10px solid transparent;border-right:10px solid transparent;
+    border-top:18px solid var(--gold);
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    z-index:3;
+  }
+  .wheel-outer{
+    position:relative;width:236px;height:236px;border-radius:50%;
+    background:var(--surface-2);padding:9px;
+    box-shadow:inset 0 0 0 2px var(--border), 0 10px 30px -10px rgba(0,0,0,.7);
+  }
+  .wheel-face{
+    position:relative;width:100%;height:100%;border-radius:50%;
+    background: conic-gradient(from -30deg,
+      var(--gold) 0deg 60deg, #2c3350 60deg 120deg, #333a58 120deg 180deg,
+      #2c3350 180deg 240deg, #333a58 240deg 300deg, #2c3350 300deg 360deg);
+    transition: transform 9.6s cubic-bezier(.05,.88,.02,1);
+    box-shadow: inset 0 0 0 3px rgba(0,0,0,.25);
+  }
+  .slice-label{position:absolute;top:50%;left:50%;width:0;height:0;}
+  .slice-label span{
+    display:block;position:absolute;width:88px;left:-44px;top:-96px;
+    text-align:center;font-size:11px;font-weight:700;line-height:1.3;color:var(--text);
+  }
+  .slice-label.jackpot span{color:#241a05;font-size:12px;}
+  .hub{
+    position:absolute;top:50%;left:50%;width:60px;height:60px;margin:-30px 0 0 -30px;
+    border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:12px;color:#1a0f08;
+    box-shadow:0 0 0 5px var(--surface-2), 0 6px 14px -4px rgba(0,0,0,.6);z-index:2;
+  }
+
+  .spin-btn{
+    width:100%;max-width:260px;padding:13px 0;border:none;border-radius:999px;
+    background:linear-gradient(180deg,#ff8a5c,var(--accent));color:#1c0d05;
+    font-weight:900;font-size:15px;letter-spacing:.02em;cursor:pointer;
+    box-shadow:0 8px 18px -6px rgba(255,106,61,.6);
+  }
+  .spin-btn:disabled{opacity:.5;cursor:default;}
+
+  /* ---------- coupon card (mimics the real dark-pattern popup) ---------- */
+  .coupon{
+    background:var(--card);color:var(--card-text);
+    border-radius:20px;padding:26px 22px 22px;text-align:center;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.7);
+    margin-top:14px;
+  }
+  .coupon .label{font-size:15px;font-weight:800;margin-bottom:10px;}
+  .coupon .amount{
+    font-size:44px;font-weight:900;letter-spacing:-.02em;line-height:1;
+    color:#111;margin-bottom:14px;
+  }
+  .coupon .amount span{font-size:22px;vertical-align:top;margin-right:2px;}
+  .coupon .rows{border-top:1px solid #ececec;padding-top:14px;margin-bottom:16px;}
+  .coupon .row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;}
+  .coupon .row .k{color:var(--card-muted);}
+  .coupon .row .v{font-weight:700;}
+  .coupon .row .v.hl{color:var(--accent);}
+  .coupon .cta{
+    width:100%;padding:14px 0;border:none;border-radius:12px;
+    background:linear-gradient(180deg,#ff8a5c,var(--accent));
+    color:#fff;font-weight:900;font-size:15px;cursor:pointer;
+    box-shadow:0 10px 20px -8px rgba(255,106,61,.7);
+  }
+  .coupon .fine{font-size:10px;color:#b3b3b3;margin-top:10px;line-height:1.5;}
+
+  /* ---------- coin collection screen ---------- */
+  .coins-card{
+    background:rgba(28,31,43,.96);border:1px solid var(--border);
+    border-radius:22px;padding:22px 20px;margin-top:14px;
+  }
+  .coins-card h2{font-size:18px;margin:0 0 4px;text-align:center;}
+  .coins-card .sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:18px;}
+
+  .ring-wrap{display:flex;justify-content:center;margin-bottom:16px;}
+  .ring{
+    position:relative;width:160px;height:160px;border-radius:50%;
+    background:conic-gradient(var(--border) 0deg 360deg);
+    transition:background .5s ease;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ring::before{
+    content:"";position:absolute;inset:12px;border-radius:50%;background:var(--surface);
+  }
+  .ring .pct{position:relative;z-index:1;text-align:center;}
+  .ring .pct b{display:block;font-size:26px;font-variant-numeric:tabular-nums;}
+  .ring .pct span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;}
+
+  .remain{
+    text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:16px;
+  }
+  .remain b{
+    display:inline-block;color:var(--danger);font-weight:800;
+    font-variant-numeric:tabular-nums;word-break:break-all;
+  }
+
+  .stat-row{display:flex;gap:10px;margin-bottom:16px;}
+  .stat{
+    flex:1;background:var(--surface-2);border:1px solid var(--border);
+    border-radius:12px;padding:10px;text-align:center;
+  }
+  .stat b{display:block;font-size:16px;font-variant-numeric:tabular-nums;}
+  .stat span{font-size:10px;color:var(--muted);}
+
+  .invite-btn{
+    width:100%;padding:13px 0;border:none;border-radius:999px;margin-bottom:8px;
+    background:linear-gradient(180deg,#ff8a5c,var(--accent));color:#1c0d05;
+    font-weight:900;font-size:15px;cursor:pointer;
+  }
+  .claim-btn{
+    width:100%;padding:13px 0;border:1px solid var(--border);border-radius:999px;
+    background:var(--surface-2);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;
+    margin-bottom:12px;
+  }
+
+  .ticker{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:10px;
+    padding:8px 10px;font-size:11.5px;color:var(--muted);text-align:center;
+    height:34px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;margin-bottom:10px;
+  }
+  .ticker span{transition:opacity .3s ease;}
+
+  .restart{
+    display:block;text-align:center;font-size:11.5px;color:var(--muted);
+    text-decoration:underline;margin-top:4px;cursor:pointer;background:none;border:none;width:100%;
+  }
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+    transform:translate(-50%,10px);
+    background:#1a1c26;border:1px solid var(--border);color:var(--text);
+    padding:10px 16px;border-radius:999px;font-size:12.5px;
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.6);
+    z-index:60;opacity:0;transition:opacity .25s ease, transform .25s ease;
+    max-width:90%;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
+  .hidden{display:none!important;}
+
+  @media (prefers-reduced-motion: reduce){
+    .wheel-face{transition-duration:.4s;}
+    .neon.reveal{animation:none;opacity:1;transform:scale(1);}
+  }
+</style>
+
+<div class="app">
+  <div class="storefront" aria-hidden="true">
+    <div class="store-nav">
+      <div class="logo">월급루팡</div>
+      <div class="icons">🔍 🛒 ☰</div>
+    </div>
+    <div class="store-hero">
+      <div class="tag">연말맞이 특가 · 최대 90% 오프</div>
+      <div class="big">직장인 필수템 세일</div>
+      <div class="sub">오늘만 이 가격, 재입고 안 함</div>
+    </div>
+    <div class="grid">
+      <div class="pcard"><div class="thumb">🖨️</div><div class="name">야근 확인서 도장 세트</div><div class="price">₩3,900<span class="off">80%</span></div></div>
+      <div class="pcard"><div class="thumb">☕</div><div class="name">밤샘용 커피믹스 100입</div><div class="price">₩12,000</div></div>
+      <div class="pcard"><div class="thumb">🛋️</div><div class="name">사무실 간이침대</div><div class="price">₩89,000<span class="off">65%</span></div></div>
+      <div class="pcard"><div class="thumb">⏰</div><div class="name">퇴근시간 안 보이는 시계</div><div class="price">₩7,500</div></div>
+      <div class="pcard"><div class="thumb">🧾</div><div class="name">초과근무 미신청 확인서</div><div class="price">₩0</div></div>
+      <div class="pcard"><div class="thumb">🧢</div><div class="name">상사 눈치 모자</div><div class="price">₩15,000<span class="off">40%</span></div></div>
+      <div class="pcard"><div class="thumb">🧃</div><div class="name">야식 대신 물 한 병</div><div class="price">₩1,000</div></div>
+      <div class="pcard"><div class="thumb">📎</div><div class="name">클립보드 방패</div><div class="price">₩5,900</div></div>
+    </div>
+  </div>
+
+  <div class="scrim"></div>
+  <canvas id="confetti"></canvas>
+
+  <div class="stage">
+    <div class="stage-inner">
+
+      <div class="install-bar" id="installBar">
+        <div class="icon">💼</div>
+        <div class="txt"><b>월급루팡 앱 설치하기</b><span>어디서나 야근을 확인해 보세요</span></div>
+        <div class="x" id="installClose">✕</div>
+      </div>
+
+      <div class="neon" id="neonText">최고 혜택에 당첨되셨습니다</div>
+
+      <div class="wheel-card" id="wheelCard">
+        <div class="eyebrow">직장인 전용 럭키 데이</div>
+        <div class="timer">퇴근까지 남은 시간 <b id="clock">00:00:00</b></div>
+        <div class="wheel-zone">
+          <div class="pin"></div>
+          <div class="wheel-outer">
+            <div class="wheel-face" id="wheelFace">
+              <div class="slice-label jackpot" style="transform:rotate(0deg)"><span>야근<br>확정</span></div>
+              <div class="slice-label" style="transform:rotate(60deg)"><span>커피<br>쿠폰</span></div>
+              <div class="slice-label" style="transform:rotate(120deg)"><span>칼퇴<br>보장</span></div>
+              <div class="slice-label" style="transform:rotate(180deg)"><span>회식<br>스킵권</span></div>
+              <div class="slice-label" style="transform:rotate(240deg)"><span>연차<br>1일</span></div>
+              <div class="slice-label" style="transform:rotate(300deg)"><span>보너스<br>5만원</span></div>
+              <div class="hub">GO</div>
+            </div>
+          </div>
+        </div>
+        <button class="spin-btn" id="spinBtn">돌리기</button>
+      </div>
+
+      <div class="coupon hidden" id="couponCard">
+        <div class="label">🎁 룰렛 당첨금</div>
+        <div class="amount"><span>₩</span><span id="couponAmountValue">5,000</span></div>
+        <div class="rows">
+          <div class="row"><span class="k">적립 목표</span><span class="v hl">10,000원</span></div>
+          <div class="row"><span class="k">남은 시간</span><span class="v" id="couponClock">00:04:59.9</span></div>
+        </div>
+        <button class="cta" id="couponCta">지금 받기</button>
+        <div class="fine">*10,000원을 모두 모아야 실제로 면제됩니다. 이번 당첨금은 자동으로 적립돼요.</div>
+      </div>
+
+      <div class="coins-card hidden" id="coinsCard">
+        <h2>적립금 모아서 <span class="display" style="color:var(--gold)">야근 면제</span> 받기</h2>
+        <div class="sub">목표 10,000원 · 친구를 초대할수록 더 쌓여요 (아마도)</div>
+
+        <div class="ring-wrap">
+          <div class="ring" id="ringEl"><div class="pct"><b id="pctText">0%</b><span>달성률</span></div></div>
+        </div>
+
+        <div class="remain">목표까지 남은 금액<br><b id="remainText">₩10,000</b></div>
+
+        <div class="stat-row">
+          <div class="stat"><b id="coinCount">₩0</b><span>모은 금액</span></div>
+          <div class="stat"><b id="friendCount">0</b><span>초대한 친구</span></div>
+        </div>
+
+        <button class="invite-btn" id="inviteBtn">📤 친구에게 공유하기</button>
+        <button class="claim-btn" id="claimBtn">면제 받기</button>
+
+        <div class="ticker"><span id="tickerText">이**님이 방금 야근을 면제받았습니다 🎉</span></div>
+
+        <button class="restart" id="restartBtn">처음부터 다시 돌리기</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var wheel = document.getElementById('wheelFace');
+  var wheelCard = document.getElementById('wheelCard');
+  var spinBtn = document.getElementById('spinBtn');
+  var couponCard = document.getElementById('couponCard');
+  var couponCta = document.getElementById('couponCta');
+  var couponAmountValue = document.getElementById('couponAmountValue');
+  var coinsCard = document.getElementById('coinsCard');
+  var neonText = document.getElementById('neonText');
+  var clock = document.getElementById('clock');
+  var couponClock = document.getElementById('couponClock');
+  var toast = document.getElementById('toast');
+  var installBar = document.getElementById('installBar');
+  var installClose = document.getElementById('installClose');
+  var restartBtn = document.getElementById('restartBtn');
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function pad(n, len){ n = '' + Math.floor(n); while (n.length < (len||2)) n = '0'+n; return n; }
+  function won(n){ return '₩' + Math.round(n).toLocaleString(); }
+
+  /* ---------- the savings goal (rigged to never finish) ---------- */
+  var TARGET = 10000;
+  var rawTotal = 0;
+  var spinCount = 0;
+  var friends = 0;
+
+  function spinRewardForCount(n){
+    if (n === 0) return 5000;
+    if (n === 1) return 4000;
+    if (n === 2) return 500;
+    var extra = n - 2;
+    return Math.max(1, Math.floor(500 / Math.pow(5, extra)));
+  }
+  function inviteRewardForCount(n){
+    if (n === 0) return 250;
+    if (n === 1) return 100;
+    if (n === 2) return 50;
+    var extra = n - 2;
+    return Math.max(1, Math.floor(50 / Math.pow(2, extra)));
+  }
+  function addToTotal(amount){
+    rawTotal = Math.min(rawTotal + amount, TARGET - 1); // never actually hits the goal
+    return amount;
+  }
+
+  /* ---------- confetti ---------- */
+  var canvas = document.getElementById('confetti');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var confettiRunning = false;
+  function sizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas);
+
+  var colors = ['#ffd23f','#ff6a3d','#ff3d6e','#ffffff','#5ad1c9'];
+  function fireConfetti(count, duration){
+    if (reduceMotion) return;
+    for (var i=0;i<count;i++){
+      particles.push({
+        x: Math.random()*canvas.width,
+        y: -20 - Math.random()*80,
+        vx: (Math.random()-0.5)*2.2,
+        vy: 2 + Math.random()*3,
+        size: 5 + Math.random()*6,
+        rot: Math.random()*360,
+        vr: (Math.random()-0.5)*10,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        life: duration
+      });
+    }
+    if (!confettiRunning){
+      confettiRunning = true;
+      requestAnimationFrame(tickConfetti);
+    }
+  }
+  function tickConfetti(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    var alive = [];
+    for (var i=0;i<particles.length;i++){
+      var p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= 16;
+      if (p.life > 0 && p.y < canvas.height + 30){
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
+        ctx.restore();
+        alive.push(p);
+      }
+    }
+    particles = alive;
+    if (particles.length > 0){
+      requestAnimationFrame(tickConfetti);
+    } else {
+      confettiRunning = false;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- wheel (rigged) ---------- */
+  var rotation = 0;
+  var spinning = false;
+
+  function spin(){
+    if (spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    neonText.classList.remove('reveal');
+    void neonText.offsetWidth; // restart animation on repeat spins
+
+    var extraTurns = 16 + Math.floor(Math.random()*5);
+    var jitter = (Math.random()*50 - 25);
+    var base = Math.ceil((rotation + 1) / 360) * 360;
+    rotation = base + extraTurns*360 + jitter;
+    wheel.style.transform = 'rotate(' + rotation + 'deg)';
+
+    var spinDuration = reduceMotion ? 300 : 9600;
+    setTimeout(function(){
+      spinning = false;
+      neonText.classList.add('reveal');
+      fireConfetti(90, 2200);
+      wheelCard.classList.add('dim');
+
+      var reward = spinRewardForCount(spinCount);
+      spinCount += 1;
+      couponAmountValue.textContent = reward.toLocaleString();
+      pendingSpinReward = reward;
+
+      setTimeout(function(){
+        couponCard.classList.remove('hidden');
+      }, 350);
+    }, spinDuration + 100);
+  }
+  spinBtn.addEventListener('click', spin);
+
+  var pendingSpinReward = 0;
+  couponCta.addEventListener('click', function(){
+    addToTotal(pendingSpinReward);
+    updateCoinsUI();
+    couponCard.classList.add('hidden');
+    wheelCard.classList.add('hidden');
+    coinsCard.classList.remove('hidden');
+    fireConfetti(40, 1400);
+  });
+
+  restartBtn.addEventListener('click', function(){
+    coinsCard.classList.add('hidden');
+    couponCard.classList.add('hidden');
+    wheelCard.classList.remove('hidden');
+    wheelCard.classList.remove('dim');
+    rawTotal = 0; spinCount = 0; friends = 0;
+    updateCoinsUI();
+  });
+
+  installClose.addEventListener('click', function(){
+    installBar.classList.add('hidden');
+  });
+
+  /* ---------- clocks ---------- */
+  var deadline = Date.now() + 1000*60*60*3.5;
+  function tickClock(){
+    var diff = Math.max(0, deadline - Date.now());
+    var h = Math.floor(diff/3600000);
+    var m = Math.floor((diff%3600000)/60000);
+    var s = Math.floor((diff%60000)/1000);
+    clock.textContent = pad(h)+':'+pad(m)+':'+pad(s);
+    if (diff <= 0) deadline = Date.now() + 1000*60*60*3.5;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  var couponDeadline = Date.now() + 1000*60*5;
+  function tickCouponClock(){
+    var diff = Math.max(0, couponDeadline - Date.now());
+    var m = Math.floor(diff/60000);
+    var s = Math.floor((diff%60000)/1000);
+    var ds = Math.floor((diff%1000)/100);
+    couponClock.textContent = pad(m)+':'+pad(s)+'.'+ds;
+    if (diff <= 0) couponDeadline = Date.now() + 1000*60*5;
+  }
+  tickCouponClock();
+  setInterval(tickCouponClock, 100);
+
+  /* ---------- coin collection (never completes) ---------- */
+  var coinCountEl = document.getElementById('coinCount');
+  var friendCountEl = document.getElementById('friendCount');
+  var remainTextEl = document.getElementById('remainText');
+  var pctTextEl = document.getElementById('pctText');
+  var ringEl = document.getElementById('ringEl');
+  var inviteBtn = document.getElementById('inviteBtn');
+  var claimBtn = document.getElementById('claimBtn');
+  var tickerText = document.getElementById('tickerText');
+
+  var sharing = false;
+
+  function updateCoinsUI(){
+    var pct = Math.min(99.99, (rawTotal / TARGET) * 100);
+    var decimalsForPct = pct >= 99 ? 2 : 1;
+    coinCountEl.textContent = won(rawTotal);
+    friendCountEl.textContent = friends;
+    remainTextEl.textContent = won(TARGET - rawTotal);
+    pctTextEl.textContent = pct.toFixed(decimalsForPct) + '%';
+    ringEl.style.background = 'conic-gradient(var(--gold) 0deg ' + (pct*3.6) + 'deg, var(--border) ' + (pct*3.6) + 'deg 360deg)';
+  }
+  updateCoinsUI();
+
+  function myShareId(){
+    try{
+      var id = localStorage.getItem('wolgeupRefId');
+      if (!id){
+        id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('id-' + Math.random().toString(36).slice(2));
+        localStorage.setItem('wolgeupRefId', id);
+      }
+      return id;
+    }catch(e){ return 'id-' + Math.random().toString(36).slice(2); }
+  }
+  function buildShareUrl(){
+    try{
+      var u = new URL(location.href);
+      u.searchParams.set('ref', myShareId());
+      return u.toString();
+    }catch(e){ return location.href; }
+  }
+
+  function onFriendArrives(){
+    var reward = inviteRewardForCount(friends);
+    friends += 1;
+    addToTotal(reward);
+    updateCoinsUI();
+    fireConfetti(50, 1500);
+    showToast('친구가 링크를 열어서 ' + won(reward) + ' 받았어요! 그래도 ' + won(TARGET - rawTotal) + ' 남았어요 😅');
+  }
+
+  inviteBtn.addEventListener('click', async function(){
+    if (sharing) return;
+    sharing = true;
+    var url = buildShareUrl();
+    var shareData = {
+      title: '월급루팡 야근 면제 이벤트',
+      text: '나 지금 야근 면제 코인 모으는 중이야! 링크 눌러서 좀 도와줘 🙏',
+      url: url
+    };
+    var shared = false;
+    if (navigator.share){
+      try{ await navigator.share(shareData); shared = true; }
+      catch(e){ /* 사용자가 공유를 취소함 */ }
+    }
+    if (!shared){
+      try{
+        await navigator.clipboard.writeText(url);
+        showToast('공유 링크를 복사했어요! 카톡에 붙여넣기 해보세요');
+        shared = true;
+      }catch(e){
+        showToast('공유 링크: ' + url);
+      }
+    } else {
+      showToast('공유했습니다! 친구가 링크를 열면 알려드릴게요');
+    }
+    if (shared){
+      var delay = 2200 + Math.random()*3800;
+      setTimeout(onFriendArrives, delay);
+    }
+    sharing = false;
+  });
+
+  (function checkInvitedFrom(){
+    try{
+      var params = new URLSearchParams(location.search);
+      var ref = params.get('ref');
+      if (ref && ref !== myShareId()){
+        setTimeout(function(){
+          showToast('초대장을 받고 들어오셨네요! 같이 코인 모아볼까요? 😏');
+        }, 600);
+      }
+    }catch(e){}
+  })();
+
+  claimBtn.addEventListener('click', function(){
+    showToast('아직 ' + won(TARGET - rawTotal) + ' 부족합니다! 친구를 더 초대해주세요.');
+  });
+
+  var tickerNames = ['이**','박**','최**','정**','김**','한**','오**','유**'];
+  var tickerIdx = 0;
+  setInterval(function(){
+    tickerText.style.opacity = 0;
+    setTimeout(function(){
+      tickerIdx = (tickerIdx+1) % tickerNames.length;
+      tickerText.textContent = tickerNames[tickerIdx] + '님이 방금 야근을 면제받았습니다 🎉';
+      tickerText.style.opacity = 1;
+    }, 260);
+  }, 2600);
+})();
+</script>
