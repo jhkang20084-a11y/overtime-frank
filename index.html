@@ -1,4 +1,4 @@
-<title>야근 확정 룰렛</title>
+<title>직장인 운명 결정 앱</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
@@ -224,6 +224,10 @@
     font-size:11.5px;color:var(--muted);
   }
   .wheel-card .timer b{color:var(--danger);font-variant-numeric:tabular-nums;font-weight:700;}
+  .spin-tease{
+    min-height:15px;margin-top:9px;font-size:11.5px;color:var(--muted);
+    font-style:italic;
+  }
 
   .wheel-zone{position:relative;display:flex;justify-content:center;margin-bottom:16px;}
   .pin{
@@ -463,6 +467,7 @@
               </div>
             </div>
             <button class="spin-btn" id="spinBtn">돌리기</button>
+            <div class="spin-tease" id="spinTease"></div>
           </div>
 
           <div class="coupon hidden neon-frame" id="couponCard">
@@ -684,14 +689,40 @@
   /* ---------- wheel (rigged) ----------
      Animated with requestAnimationFrame against real elapsed time
      (not a CSS transition) so the duration is exact and verifiable,
-     with a strong ease-out tail: fast for the first stretch, then a
-     long, nerve-wracking crawl before it actually stops. */
+     with a very sharp ease-out: fast for a moment, then an agonizing
+     crawl with a little stutter/wobble right before it actually stops. */
   var jackpotAmountEl = document.getElementById('jackpotAmount');
+  var spinTease = document.getElementById('spinTease');
   var rotation = 0;
   var spinning = false;
 
   function easeOutSlot(t){
-    return 1 - Math.pow(1 - t, 6);
+    var base = 1 - Math.pow(1 - t, 8);
+    var wobble = Math.sin(t * 55) * (1 - t) * (1 - t) * 0.01;
+    return base + wobble;
+  }
+
+  var teaseLines = [
+    '아직 안 멈췄어요...',
+    '거의 다 왔어요... 아마도',
+    '어? 왜 안 멈추지',
+    '조금만 더... 조금만 더...',
+    '이쯔음이면 서야 하는데',
+    '설마 이대로 계속 도는 건가요',
+    '거의... 거의 다 왔어요',
+  ];
+  var teaseTimer = null;
+  function startTease(){
+    var i = 0;
+    spinTease.textContent = teaseLines[0];
+    teaseTimer = setInterval(function(){
+      i = (i + 1) % teaseLines.length;
+      spinTease.textContent = teaseLines[i];
+    }, 2400);
+  }
+  function stopTease(){
+    clearInterval(teaseTimer);
+    spinTease.textContent = '';
   }
 
   function spin(){
@@ -700,18 +731,19 @@
     spinBtn.disabled = true;
     neonText.classList.remove('reveal');
     void neonText.offsetWidth; // restart animation on repeat spins
+    startTease();
 
     var reward = spinRewardForCount(spinCount);
     spinCount += 1;
     pendingSpinReward = reward;
     jackpotAmountEl.textContent = reward === 0 ? '₩0' : won(reward);
 
-    var extraTurns = 26 + Math.floor(Math.random()*7);
+    var extraTurns = 34 + Math.floor(Math.random()*9);
     var jitter = (Math.random()*50 - 25);
     var startRotation = rotation;
     var base = Math.ceil((rotation + 1) / 360) * 360;
     var endRotation = base + extraTurns*360 + jitter;
-    var duration = reduceMotion ? 400 : 16000;
+    var duration = reduceMotion ? 400 : 24000;
     var startTime = null;
 
     function frame(now){
@@ -722,6 +754,8 @@
       if (t < 1){
         requestAnimationFrame(frame);
       } else {
+        rotation = endRotation;
+        wheel.style.transform = 'rotate(' + rotation + 'deg)';
         finishSpin(reward);
       }
     }
@@ -730,6 +764,7 @@
 
   function finishSpin(reward){
     spinning = false;
+    stopTease();
     neonText.classList.add('reveal');
     fireConfetti(90, 2200);
     fireFireworks(5);
