@@ -735,6 +735,51 @@
       color: #ffd88d;
     }
 
+    .bonus-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(10,6,2,0.72);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+    }
+    .bonus-overlay.show {
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .bonus-card {
+      width: 100%;
+      max-width: 300px;
+      background: rgba(28,16,6,0.94);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 22px;
+      padding: 30px 22px 24px;
+      text-align: center;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.4);
+    }
+    .bonus-kick {
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffd9c2;
+      margin-bottom: 10px;
+    }
+    .bonus-badge {
+      font-size: clamp(24px, 8vw, 32px);
+      font-weight: 900;
+      color: #ffe74c;
+      text-shadow: 0 2px 0 rgba(160,60,0,0.3), 0 6px 16px rgba(0,0,0,0.28);
+      margin-bottom: 12px;
+    }
+    .bonus-sub {
+      font-size: 14px;
+      color: rgba(255,247,224,0.92);
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
     .progress-bar {
       position: absolute;
       left: 16px;
@@ -923,6 +968,15 @@
           <button class="cta" id="spinBtn" onclick="spinMain()">룰렛 돌리기</button>
         </div>
       </div>
+
+      <div class="bonus-overlay hidden" id="bonusOverlay">
+        <div class="bonus-card">
+          <div class="bonus-kick">꽝... 이럴 수가!</div>
+          <div class="bonus-badge">추가기회!!!</div>
+          <div class="bonus-sub">딱 한 번, 다시 도전할 기회를 드릴게요!</div>
+          <button class="cta" id="bonusSpinBtn" onclick="startBonusSpin()">다시 룰렛 돌리기</button>
+        </div>
+      </div>
     </section>
 
     <!-- Scene 3 -->
@@ -1084,6 +1138,14 @@
       currentScene = n;
       updateProgressBar(n);
 
+      if (n === 2) {
+        const btn = document.getElementById('spinBtn');
+        btn.disabled = false;
+        btn.innerText = '룰렛 돌리기';
+        const overlay = document.getElementById('bonusOverlay');
+        overlay.classList.remove('show');
+        overlay.classList.add('hidden');
+      }
       if (n === 4) {
         playCouponScene();
       }
@@ -1112,20 +1174,27 @@
       });
     }
 
-    function spinMain() {
+    // Rigged in two acts: the first spin always lands on "꽝" (segment
+    // centered at 108deg), which unlocks one "추가기회!!!" bonus spin that
+    // always lands on "야근 1주" (segment centered at 180deg, the red slice).
+    // The wheel keeps spinning forward across both attempts instead of
+    // resetting, so it reads as one continuous animation.
+    let wheelBaseRotation = 0;
+
+    function runSpin(targetCenter, wobble, duration, onDone) {
       const wheel = document.getElementById('wheel1');
       const pointer = document.querySelector('#scene2 .pointer');
-      const btn = document.getElementById('spinBtn');
-      btn.disabled = true;
-      btn.innerText = '회전 중...';
 
-      // "야근 1주" slice sits at 144deg-216deg (center 180deg) on the wheel face.
-      // Land inside that red slice every time, with a small random wobble so it
-      // doesn't look perfectly centered.
       const turns = 5;
-      const landingAngle = 180 + (Math.random() * 36 - 18);
-      const finalRotation = turns * 360 + ((360 - landingAngle) % 360);
-      const duration = 4600;
+      const landingAngle = targetCenter + (Math.random() * wobble * 2 - wobble);
+      const neededMod = ((360 - landingAngle) % 360 + 360) % 360;
+      const currentMod = ((wheelBaseRotation % 360) + 360) % 360;
+      let deltaToAlign = neededMod - currentMod;
+      if (deltaToAlign <= 0) deltaToAlign += 360;
+
+      const startRotation = wheelBaseRotation;
+      const finalRotation = startRotation + turns * 360 + deltaToAlign;
+      const spinAmount = finalRotation - startRotation;
       const tickStartRatio = 0.7;
       const tickStepDeg = 16;
       let lastTickStep = -1;
@@ -1144,7 +1213,7 @@
 
       function frame(now) {
         const t = Math.min((now - startTime) / duration, 1);
-        const angle = finalRotation * easeOutCubic(t);
+        const angle = startRotation + spinAmount * easeOutCubic(t);
         wheel.style.transform = 'rotate(' + angle + 'deg)';
 
         if (t >= tickStartRatio) {
@@ -1159,14 +1228,41 @@
           requestAnimationFrame(frame);
         } else {
           wheel.style.transform = 'rotate(' + finalRotation + 'deg)';
-          setTimeout(() => {
-            goScene(3);
-            playResultEffects();
-          }, 300);
+          wheelBaseRotation = finalRotation;
+          setTimeout(onDone, 300);
         }
       }
 
       requestAnimationFrame(frame);
+    }
+
+    function spinMain() {
+      const btn = document.getElementById('spinBtn');
+      btn.disabled = true;
+      btn.innerText = '회전 중...';
+
+      // "꽝" slice sits at 72deg-144deg (center 108deg).
+      runSpin(108, 25, 4600, () => {
+        const overlay = document.getElementById('bonusOverlay');
+        overlay.classList.remove('hidden');
+        void overlay.offsetWidth;
+        overlay.classList.add('show');
+      });
+    }
+
+    function startBonusSpin() {
+      const overlay = document.getElementById('bonusOverlay');
+      overlay.classList.remove('show');
+      overlay.classList.add('hidden');
+
+      const btn = document.getElementById('spinBtn');
+      btn.innerText = '회전 중...';
+
+      // "야근 1주" slice sits at 144deg-216deg (center 180deg, the red slice).
+      runSpin(180, 18, 4600, () => {
+        goScene(3);
+        playResultEffects();
+      });
     }
 
     function playResultEffects() {
