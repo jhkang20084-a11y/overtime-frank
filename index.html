@@ -3,7 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>프로모션 패러디 모션 프로토타입 v2</title>
+  <title>🎁 상자가 도착했습니다</title>
+  <meta name="description" content="소중한 당신을 위한 특별한 선물이 준비되어 있어요. 지금 당장 확인하세요! 시간이 얼마 남지 않았습니다!" />
+
+  <!-- Open Graph: controls the preview card shown in KakaoTalk, Slack, etc. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="🎁 상자가 도착했습니다" />
+  <meta property="og:description" content="소중한 당신을 위한 특별한 선물이 준비되어 있어요. 지금 당장 확인하세요! 시간이 얼마 남지 않았습니다!" />
+  <meta property="og:url" content="https://jhkang20084-a11y.github.io/overtime-frank/" />
+  <!-- og:image must be an absolute URL for KakaoTalk/Slack/etc. to fetch it -->
+  <meta property="og:image" content="https://jhkang20084-a11y.github.io/overtime-frank/assets/preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="🎁 상자가 도착했습니다" />
+  <meta name="twitter:description" content="소중한 당신을 위한 특별한 선물이 준비되어 있어요. 지금 당장 확인하세요! 시간이 얼마 남지 않았습니다!" />
+  <meta name="twitter:image" content="https://jhkang20084-a11y.github.io/overtime-frank/assets/preview.png" />
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -13,6 +29,8 @@
       font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       color: #fff;
       overflow: hidden;
+      word-break: keep-all;
+      overflow-wrap: break-word;
     }
     body {
       min-height: 100vh;
@@ -67,8 +85,11 @@
         radial-gradient(circle at 50% 18%, rgba(255,228,122,0.18), transparent 24%),
         linear-gradient(180deg, #ff6a00 0%, #ff5200 56%, #ff7a00 100%);
     }
-    .bg.image {
-      background-image: url("https://images.wrks.ai/dalle/t1P1s3IbvADPjaCXX7RVIUumGyVe75YmyOTcj8ln.png");
+    .bg.celebrate {
+      background:
+        repeating-conic-gradient(from 0deg at 50% 40%, rgba(255,255,255,0.14) 0deg 6deg, rgba(255,255,255,0) 6deg 16deg),
+        radial-gradient(circle at 50% 40%, rgba(255,241,180,0.5) 0%, rgba(255,180,60,0.25) 38%, transparent 62%),
+        linear-gradient(180deg, #ff8a12 0%, #ff5b12 55%, #ff7a16 100%);
     }
     .bg.dark {
       background:
@@ -131,7 +152,7 @@
     }
 
     .headline {
-      font-size: 46px;
+      font-size: clamp(30px, 10.5vw, 46px);
       line-height: 1.02;
       font-weight: 900;
       letter-spacing: -1.5px;
@@ -325,6 +346,9 @@
       z-index: 3;
       filter: drop-shadow(0 3px 3px rgba(0,0,0,0.28));
     }
+    .pointer.tick {
+      animation: tickWiggle 0.16s ease-out;
+    }
 
     .wheel-frame {
       position: relative;
@@ -346,11 +370,10 @@
       background: conic-gradient(
         #fff5e7 0deg 72deg,
         #ffe6bf 72deg 144deg,
-        #ff8b26 144deg 216deg,
+        #ff2f45 144deg 216deg,
         #fff5e7 216deg 288deg,
         #ffe6bf 288deg 360deg
       );
-      transition: transform 4.6s cubic-bezier(.11,.86,.25,1);
     }
 
     .wheel-center {
@@ -375,18 +398,30 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 120px;
+      width: 130px;
       text-align: center;
       font-weight: 900;
-      font-size: 20px;
+      font-size: 17px;
+      white-space: nowrap;
       color: #4a250c;
       transform-origin: center center;
     }
-    .l1 { transform: translate(-50%, -50%) rotate(-54deg) translateY(-104px) rotate(54deg); }
-    .l2 { transform: translate(-50%, -50%) rotate(18deg) translateY(-104px) rotate(-18deg); }
-    .l3 { transform: translate(-50%, -50%) rotate(90deg) translateY(-104px) rotate(-90deg); }
-    .l4 { transform: translate(-50%, -50%) rotate(162deg) translateY(-104px) rotate(-162deg); }
-    .l5 { transform: translate(-50%, -50%) rotate(234deg) translateY(-104px) rotate(-234deg); }
+    /*
+      No counter-rotation here on purpose: each label stays "attached" to its
+      slice (like a spoke) instead of being forced upright. That way, whichever
+      slice the wheel lands on ends up reading upright under the pointer once
+      the spin stops, instead of flipping based on the wheel's total spin angle.
+      Angles are centered exactly on their conic-gradient slice (36/108/180/252/324deg).
+    */
+    .l1 { transform: translate(-50%, -50%) rotate(-36deg) translateY(-104px); }
+    .l2 { transform: translate(-50%, -50%) rotate(36deg) translateY(-104px); }
+    .l3 { transform: translate(-50%, -50%) rotate(108deg) translateY(-104px); }
+    .l4 {
+      transform: translate(-50%, -50%) rotate(180deg) translateY(-104px);
+      color: #fff5f5;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    }
+    .l5 { transform: translate(-50%, -50%) rotate(252deg) translateY(-104px); }
 
     .peg {
       position: absolute;
@@ -448,9 +483,9 @@
     }
 
     .result-main {
-      font-size: 52px;
+      font-size: clamp(28px, 9vw, 44px);
       font-weight: 900;
-      line-height: 1.04;
+      line-height: 1.15;
       color: #ffe74d;
       text-shadow: 0 2px 0 rgba(160,60,0,0.28), 0 8px 20px rgba(0,0,0,0.24);
     }
@@ -463,7 +498,7 @@
       margin-top: 22px;
     }
     .coupon-sum {
-      font-size: 74px;
+      font-size: clamp(42px, 14vw, 68px);
       color: #ffe84d;
       font-weight: 900;
       line-height: 1;
@@ -517,6 +552,26 @@
       color: #8c5d16;
     }
 
+    .goal-callout {
+      margin-top: 16px;
+      text-align: center;
+      font-size: clamp(18px, 6.5vw, 24px);
+      font-weight: 800;
+      line-height: 1.35;
+      color: #fff2c5;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    .goal-callout b {
+      font-size: clamp(24px, 8.5vw, 32px);
+      color: #ffe74c;
+      text-shadow: 0 2px 0 rgba(160,60,0,0.3), 0 6px 16px rgba(0,0,0,0.28);
+    }
+    .goal-callout.show {
+      animation: fadeUp 0.7s ease forwards;
+    }
+
     .banner {
       background: linear-gradient(180deg, #fff7d9, #fff0c1);
       color: #60320b;
@@ -536,7 +591,7 @@
       animation: bannerFlash 1.1s ease forwards;
     }
     .banner .line1 { font-size: 18px; margin-bottom: 6px; }
-    .banner .line2 { font-size: 34px; }
+    .banner .line2 { font-size: clamp(22px, 8vw, 32px); }
     .banner .line2 span { color: #ff7a1b; }
 
     .modal {
@@ -582,12 +637,16 @@
       min-height: 180px;
       background: linear-gradient(180deg, #fff8e8, #fff0cb);
       color: #24324a;
-      padding: 18px 12px;
+      padding: 18px 8px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       text-align: center;
       font-weight: 900;
+    }
+    .card-mini .money-big {
+      font-size: 19px;
+      white-space: nowrap;
     }
     .card-main {
       width: 58%;
@@ -602,8 +661,8 @@
       font-weight: 900;
     }
     .money-big {
-      font-size: 48px;
-      line-height: 1;
+      font-size: clamp(26px, 8.5vw, 44px);
+      line-height: 1.1;
       margin-top: 8px;
       color: #ffb100;
       text-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -611,14 +670,14 @@
     .money-big.red {
       color: #fff1f1;
       text-decoration: line-through;
-      font-size: 34px;
+      font-size: clamp(20px, 6.5vw, 30px);
       opacity: 0.92;
     }
     .money-left {
-      font-size: 56px;
+      font-size: clamp(30px, 10vw, 50px);
       color: #ffb100;
       margin-top: 14px;
-      line-height: 1;
+      line-height: 1.1;
     }
     .stamp {
       position: absolute;
@@ -646,6 +705,64 @@
       line-height: 1.5;
     }
 
+    .gauge-wrap {
+      margin-bottom: 16px;
+    }
+    .gauge-track {
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      overflow: hidden;
+    }
+    .gauge-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ffd23f, #ff8a45);
+      transition: width 0.6s cubic-bezier(.22,.9,.3,1.2);
+    }
+    .gauge-label {
+      margin-top: 6px;
+      text-align: center;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.85);
+    }
+    .gauge-label b {
+      color: #ffd88d;
+    }
+
+    .progress-bar {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 12px;
+      z-index: 6;
+      display: flex;
+      gap: 6px;
+    }
+    .progress-seg {
+      flex: 1;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.28);
+      overflow: hidden;
+    }
+    .progress-seg span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: #fff;
+      border-radius: 999px;
+    }
+
+    @keyframes tickWiggle {
+      0% { transform: rotate(0deg); }
+      35% { transform: rotate(-10deg); }
+      70% { transform: rotate(6deg); }
+      100% { transform: rotate(0deg); }
+    }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -803,7 +920,7 @@
 
     <!-- Scene 3 -->
     <section class="scene" id="scene3">
-      <div class="bg image"></div>
+      <div class="bg celebrate"></div>
       <div class="overlay"></div>
       <div class="flash" id="flashLayer"></div>
       <div class="confetti-layer" id="confettiLayer"></div>
@@ -867,6 +984,10 @@
               </div>
             </div>
           </div>
+
+          <div class="goal-callout" id="goalCallout">
+            10,000원 모으면<br><b>야근 면제!!</b>
+          </div>
         </div>
 
         <div class="bottom-panel">
@@ -903,6 +1024,11 @@
           <div class="modal-title">화이팅! 단 1,000원 남았어요!</div>
           <div class="modal-sub">이제부터는 친구 초대로만 진행할 수 있습니다.</div>
 
+          <div class="gauge-wrap">
+            <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
+            <div class="gauge-label">목표 10,000원 중 <b id="gaugeText">0%</b> 달성</div>
+          </div>
+
           <div class="invite-cards">
             <div class="card-mini">
               <div style="font-size:18px;">누적된 금액</div>
@@ -921,25 +1047,35 @@
           <button class="blue-btn" onclick="inviteLoop()">친구 초대 진행</button>
 
           <div class="fineprint" id="inviteText">
-            친구를 초대할 때마다 남은 금액이 줄어드는 것처럼 보이지만,<br>
-            보상도 같이 줄어들어 목표 달성은 계속 어려워집니다.
+            친구를 초대할 때마다 목표 금액에 점점 가까워지고 있어요!<br>
+            조금만 더 초대하면 야근 면제까지 도달할 수 있어요.
           </div>
         </div>
       </div>
     </section>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-seg"><span></span></div>
+      <div class="progress-seg"><span></span></div>
+      <div class="progress-seg"><span></span></div>
+      <div class="progress-seg"><span></span></div>
+      <div class="progress-seg"><span></span></div>
+      <div class="progress-seg"><span></span></div>
+    </div>
   </div>
 
   <script>
     let currentScene = 1;
     let totalSaved = 9000;
     let remainNeed = 1000;
-    let nextInviteReward = 100;
+    let nextInviteReward = 500;
     let inviteCount = 0;
 
     function goScene(n) {
       document.querySelectorAll('.scene').forEach(scene => scene.classList.remove('active'));
       document.getElementById('scene' + n).classList.add('active');
       currentScene = n;
+      updateProgressBar(n);
 
       if (n === 4) {
         playCouponScene();
@@ -952,18 +1088,78 @@
       }
     }
 
+    function updateProgressBar(n) {
+      document.querySelectorAll('.progress-seg span').forEach((span, idx) => {
+        const sceneNum = idx + 1;
+        span.style.transition = 'none';
+        if (sceneNum < n) {
+          span.style.width = '100%';
+        } else if (sceneNum === n) {
+          span.style.width = '0%';
+          void span.offsetWidth;
+          span.style.transition = 'width 4s linear';
+          span.style.width = '100%';
+        } else {
+          span.style.width = '0%';
+        }
+      });
+    }
+
     function spinMain() {
       const wheel = document.getElementById('wheel1');
+      const pointer = document.querySelector('#scene2 .pointer');
       const btn = document.getElementById('spinBtn');
       btn.disabled = true;
       btn.innerText = '회전 중...';
 
-      wheel.style.transform = 'rotate(1746deg)';
+      // "야근 1주" slice sits at 144deg-216deg (center 180deg) on the wheel face.
+      // Land inside that red slice every time, with a small random wobble so it
+      // doesn't look perfectly centered.
+      const turns = 5;
+      const landingAngle = 180 + (Math.random() * 36 - 18);
+      const finalRotation = turns * 360 + ((360 - landingAngle) % 360);
+      const duration = 4600;
+      const tickStartRatio = 0.7;
+      const tickStepDeg = 16;
+      let lastTickStep = -1;
+      const startTime = performance.now();
 
-      setTimeout(() => {
-        goScene(3);
-        playResultEffects();
-      }, 4650);
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      function pulseTick() {
+        if (!pointer) return;
+        pointer.classList.remove('tick');
+        void pointer.offsetWidth;
+        pointer.classList.add('tick');
+      }
+
+      function frame(now) {
+        const t = Math.min((now - startTime) / duration, 1);
+        const angle = finalRotation * easeOutCubic(t);
+        wheel.style.transform = 'rotate(' + angle + 'deg)';
+
+        if (t >= tickStartRatio) {
+          const step = Math.floor(angle / tickStepDeg);
+          if (step !== lastTickStep) {
+            lastTickStep = step;
+            pulseTick();
+          }
+        }
+
+        if (t < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          wheel.style.transform = 'rotate(' + finalRotation + 'deg)';
+          setTimeout(() => {
+            goScene(3);
+            playResultEffects();
+          }, 300);
+        }
+      }
+
+      requestAnimationFrame(frame);
     }
 
     function playResultEffects() {
@@ -1006,10 +1202,12 @@
       const sumText = document.getElementById('sumText');
       const envelope = document.getElementById('envelope');
       const bonusBtn = document.getElementById('bonusBtn');
+      const goalCallout = document.getElementById('goalCallout');
 
       sumText.innerText = '0원';
       envelope.classList.remove('show');
       bonusBtn.classList.add('hidden');
+      goalCallout.classList.remove('show');
 
       countUp(sumText, 0, 9000, 1600, '원');
 
@@ -1018,8 +1216,12 @@
       }, 950);
 
       setTimeout(() => {
+        goalCallout.classList.add('show');
+      }, 1500);
+
+      setTimeout(() => {
         bonusBtn.classList.remove('hidden');
-      }, 1850);
+      }, 2050);
     }
 
     function playBannerScene() {
@@ -1041,9 +1243,39 @@
     function playInviteScene() {
       const modal = document.getElementById('inviteModal');
       modal.classList.remove('show');
+      document.getElementById('gaugeFill').style.width = '0%';
+      document.getElementById('gaugeText').innerText = '0%';
       setTimeout(() => {
         modal.classList.add('show');
+        updateGauge();
       }, 180);
+    }
+
+    function updateGauge() {
+      // Built as a string on purpose, not real math: each invite just bolts
+      // on one more "9". It never reaches 100%, and nothing stops the digit
+      // count from growing - eventually it visibly overflows the card, which
+      // is the joke.
+      const n = inviteCount;
+      const pctText = n <= 0 ? '90' : (n === 1 ? '99' : '99.' + '9'.repeat(n - 1));
+      const widthPct = 100 - 10 / Math.pow(10, Math.min(n, 12));
+      document.getElementById('gaugeFill').style.width = widthPct + '%';
+      document.getElementById('gaugeText').innerText = pctText + '%';
+    }
+
+    function shareInvite() {
+      const shareData = {
+        title: '직장인 운명 결정 앱',
+        text: '나 대신 룰렛 돌리고 야근 면제 도전해봐! 🎁',
+        url: window.location.href
+      };
+      if (navigator.share) {
+        navigator.share(shareData).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareData.url).then(() => {
+          alert('초대 링크가 복사되었습니다. 카카오톡에 붙여넣어 친구를 초대해보세요!');
+        }).catch(() => {});
+      }
     }
 
     function countUp(el, start, end, duration, suffix = '') {
@@ -1065,33 +1297,41 @@
     }
 
     function inviteLoop() {
+      shareInvite();
+
       inviteCount += 1;
 
       const gained = nextInviteReward;
-      totalSaved += gained;
-      remainNeed = Math.max(0, 10000 - totalSaved);
+      // Hard-capped just under the 10,000 goal, so no number of invites ever
+      // actually finishes the bar - it always looks almost there instead.
+      totalSaved = Math.min(9999, totalSaved + gained);
+      remainNeed = Math.max(1, 10000 - totalSaved);
 
-      const effectiveReduction = Math.max(40, Math.floor(nextInviteReward * 0.6));
-      remainNeed = Math.max(0, remainNeed - effectiveReduction);
-
-      nextInviteReward = Math.max(5, Math.floor(nextInviteReward * 0.55));
+      // 1st invite pays 500, 2nd pays 200, then it keeps halving (floor 10)
+      // so the gauge creeps forward less and less each time.
+      nextInviteReward = inviteCount === 1
+        ? 200
+        : Math.max(10, Math.floor(nextInviteReward * 0.5));
 
       document.getElementById('savedText').innerText = '₩' + totalSaved.toLocaleString();
       document.getElementById('oldNeed').innerText = '₩' + remainNeed.toLocaleString();
       document.getElementById('inviteReward').innerText = '₩' + nextInviteReward.toLocaleString();
+      updateGauge();
 
       const text = document.getElementById('inviteText');
 
       if (inviteCount < 5) {
         text.innerHTML =
-          '친구 ' + inviteCount + '명 초대 완료.<br>' +
-          '이번 초대로 잠깐 나아졌지만, 다음 보상은 다시 ' + nextInviteReward.toLocaleString() + '원으로 줄어듭니다.';
+          '친구 ' + inviteCount + '명 초대 완료! 이번엔 ' + gained.toLocaleString() + '원 적립 성공!<br>' +
+          '목표까지 단 ' + remainNeed.toLocaleString() + '원! 조금만 더 초대하면 곧 도달해요!';
       } else {
         text.innerHTML =
-          '친구 초대가 계속 이어지고 있습니다.<br>' +
-          '남은 금액은 줄어드는 듯 보여도 보상도 같이 줄어 목표 달성이 매우 어렵습니다.';
+          '거의 다 왔어요! 게이지가 계속 차오르고 있습니다.<br>' +
+          '지금처럼 몇 번만 더 초대하면 야근 면제에 도달할 수 있어요!';
       }
     }
+
+    updateProgressBar(1);
 
     setTimeout(() => {
       document.getElementById('startBtn').classList.remove('hidden');
