@@ -155,6 +155,35 @@
   }
   .neon.reveal{animation:neonPop .5s cubic-bezier(.2,.9,.3,1.3) forwards, flicker 2.6s 0.5s infinite;}
 
+  .popup-overlay{
+    position:fixed;
+    inset:0;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px));
+    background:rgba(6,6,10,.55);
+    backdrop-filter:blur(3px);
+    overflow-y:auto;
+  }
+  .popup-inner{width:100%;max-width:420px;}
+  @keyframes popupIn{
+    0%{opacity:0;transform:scale(.82) translateY(10px);}
+    60%{opacity:1;transform:scale(1.03) translateY(0);}
+    100%{opacity:1;transform:scale(1) translateY(0);}
+  }
+  .popup-inner.pop{animation:popupIn .5s cubic-bezier(.2,.85,.25,1.3);}
+  @media (prefers-reduced-motion: reduce){
+    .popup-inner.pop{animation:none;}
+  }
+
+  .invite-btn.respin{
+    background:linear-gradient(180deg,#ffe27a,var(--gold));
+    color:#241a05;
+    box-shadow:0 8px 18px -6px rgba(255,210,63,.55);
+  }
+
   .wheel-card{
     background:rgba(28,31,43,.9);
     border:1px solid var(--border);
@@ -359,37 +388,43 @@
         <div class="x" id="installClose">✕</div>
       </div>
 
-      <div class="neon" id="neonText">최고 혜택에 당첨되셨습니다</div>
+      <div class="popup-overlay" id="wheelPopup">
+        <div class="popup-inner" id="popupInner">
 
-      <div class="wheel-card" id="wheelCard">
-        <div class="eyebrow">직장인 전용 럭키 데이</div>
-        <div class="timer">퇴근까지 남은 시간 <b id="clock">00:00:00</b></div>
-        <div class="wheel-zone">
-          <div class="pin"></div>
-          <div class="wheel-outer">
-            <div class="wheel-face" id="wheelFace">
-              <div class="slice-label jackpot" style="transform:rotate(0deg)"><span>야근<br>확정</span></div>
-              <div class="slice-label" style="transform:rotate(60deg)"><span>커피<br>쿠폰</span></div>
-              <div class="slice-label" style="transform:rotate(120deg)"><span>칼퇴<br>보장</span></div>
-              <div class="slice-label" style="transform:rotate(180deg)"><span>회식<br>스킵권</span></div>
-              <div class="slice-label" style="transform:rotate(240deg)"><span>연차<br>1일</span></div>
-              <div class="slice-label" style="transform:rotate(300deg)"><span>보너스<br>5만원</span></div>
-              <div class="hub">GO</div>
+          <div class="neon" id="neonText">최고 혜택에 당첨되셨습니다</div>
+
+          <div class="wheel-card" id="wheelCard">
+            <div class="eyebrow">직장인 전용 럭키 데이</div>
+            <div class="timer">퇴근까지 남은 시간 <b id="clock">00:00:00</b></div>
+            <div class="wheel-zone">
+              <div class="pin"></div>
+              <div class="wheel-outer">
+                <div class="wheel-face" id="wheelFace">
+                  <div class="slice-label jackpot" style="transform:rotate(0deg)"><span>야근<br>확정</span></div>
+                  <div class="slice-label" style="transform:rotate(60deg)"><span>커피<br>쿠폰</span></div>
+                  <div class="slice-label" style="transform:rotate(120deg)"><span>칼퇴<br>보장</span></div>
+                  <div class="slice-label" style="transform:rotate(180deg)"><span>회식<br>스킵권</span></div>
+                  <div class="slice-label" style="transform:rotate(240deg)"><span>연차<br>1일</span></div>
+                  <div class="slice-label" style="transform:rotate(300deg)"><span>보너스<br>5만원</span></div>
+                  <div class="hub">GO</div>
+                </div>
+              </div>
             </div>
+            <button class="spin-btn" id="spinBtn">돌리기</button>
           </div>
-        </div>
-        <button class="spin-btn" id="spinBtn">돌리기</button>
-      </div>
 
-      <div class="coupon hidden" id="couponCard">
-        <div class="label">🎁 룰렛 당첨금</div>
-        <div class="amount"><span>₩</span><span id="couponAmountValue">5,000</span></div>
-        <div class="rows">
-          <div class="row"><span class="k">적립 목표</span><span class="v hl">10,000원</span></div>
-          <div class="row"><span class="k">남은 시간</span><span class="v" id="couponClock">00:04:59.9</span></div>
+          <div class="coupon hidden" id="couponCard">
+            <div class="label">🎁 룰렛 당첨금</div>
+            <div class="amount"><span>₩</span><span id="couponAmountValue">5,000</span></div>
+            <div class="rows">
+              <div class="row"><span class="k">적립 목표</span><span class="v hl">10,000원</span></div>
+              <div class="row"><span class="k">남은 시간</span><span class="v" id="couponClock">00:04:59.9</span></div>
+            </div>
+            <button class="cta" id="couponCta">지금 받기</button>
+            <div class="fine" id="couponFine">*10,000원을 모두 모아야 실제로 면제됩니다. 이번 당첨금은 자동으로 적립돼요.</div>
+          </div>
+
         </div>
-        <button class="cta" id="couponCta">지금 받기</button>
-        <div class="fine" id="couponFine">*10,000원을 모두 모아야 실제로 면제됩니다. 이번 당첨금은 자동으로 적립돼요.</div>
       </div>
 
       <div class="coins-card hidden" id="coinsCard">
@@ -407,6 +442,7 @@
           <div class="stat"><b id="friendCount">0</b><span>초대한 친구</span></div>
         </div>
 
+        <button class="invite-btn respin" id="respinBtn">🎡 룰렛 한 번 더 돌리기!</button>
         <button class="invite-btn" id="inviteBtn">📤 친구에게 공유하기</button>
         <button class="claim-btn" id="claimBtn">면제 받기</button>
 
@@ -425,6 +461,9 @@
 (function(){
   var wheel = document.getElementById('wheelFace');
   var wheelCard = document.getElementById('wheelCard');
+  var wheelPopup = document.getElementById('wheelPopup');
+  var popupInner = document.getElementById('popupInner');
+  var respinBtn = document.getElementById('respinBtn');
   var spinBtn = document.getElementById('spinBtn');
   var couponCard = document.getElementById('couponCard');
   var couponCta = document.getElementById('couponCta');
@@ -578,17 +617,31 @@
     addToTotal(pendingSpinReward);
     updateCoinsUI();
     couponCard.classList.add('hidden');
-    wheelCard.classList.remove('dim');
-    spinBtn.disabled = false;
+    wheelPopup.classList.add('hidden');
     coinsCard.classList.remove('hidden');
     fireConfetti(40, 1400);
+  });
+
+  respinBtn.addEventListener('click', function(){
+    coinsCard.classList.add('hidden');
+    wheelCard.classList.remove('dim');
+    neonText.classList.remove('reveal');
+    spinBtn.disabled = false;
+    wheelPopup.classList.remove('hidden');
+    popupInner.classList.remove('pop');
+    void popupInner.offsetWidth;
+    popupInner.classList.add('pop');
+    showToast('🎡 새로운 룰렛이 도착했습니다!');
   });
 
   restartBtn.addEventListener('click', function(){
     coinsCard.classList.add('hidden');
     couponCard.classList.add('hidden');
-    wheelCard.classList.remove('hidden');
+    wheelPopup.classList.remove('hidden');
     wheelCard.classList.remove('dim');
+    neonText.classList.remove('reveal');
+    rotation = 0;
+    wheel.style.transform = 'rotate(0deg)';
     rawTotal = 0; spinCount = 0; friends = 0;
     updateCoinsUI();
   });
