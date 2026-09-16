@@ -193,7 +193,7 @@
     background: conic-gradient(from -30deg,
       var(--gold) 0deg 60deg, #2c3350 60deg 120deg, #333a58 120deg 180deg,
       #2c3350 180deg 240deg, #333a58 240deg 300deg, #2c3350 300deg 360deg);
-    transition: transform 9.6s cubic-bezier(.05,.88,.02,1);
+    transition: transform 16s cubic-bezier(.03,.92,.01,1);
     box-shadow: inset 0 0 0 3px rgba(0,0,0,.25);
   }
   .slice-label{position:absolute;top:50%;left:50%;width:0;height:0;}
@@ -544,13 +544,13 @@
     neonText.classList.remove('reveal');
     void neonText.offsetWidth; // restart animation on repeat spins
 
-    var extraTurns = 16 + Math.floor(Math.random()*5);
+    var extraTurns = 26 + Math.floor(Math.random()*7);
     var jitter = (Math.random()*50 - 25);
     var base = Math.ceil((rotation + 1) / 360) * 360;
     rotation = base + extraTurns*360 + jitter;
     wheel.style.transform = 'rotate(' + rotation + 'deg)';
 
-    var spinDuration = reduceMotion ? 300 : 9600;
+    var spinDuration = reduceMotion ? 300 : 16000;
     setTimeout(function(){
       spinning = false;
       neonText.classList.add('reveal');
