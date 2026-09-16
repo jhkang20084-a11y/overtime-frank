@@ -389,7 +389,7 @@
           <div class="row"><span class="k">남은 시간</span><span class="v" id="couponClock">00:04:59.9</span></div>
         </div>
         <button class="cta" id="couponCta">지금 받기</button>
-        <div class="fine">*10,000원을 모두 모아야 실제로 면제됩니다. 이번 당첨금은 자동으로 적립돼요.</div>
+        <div class="fine" id="couponFine">*10,000원을 모두 모아야 실제로 면제됩니다. 이번 당첨금은 자동으로 적립돼요.</div>
       </div>
 
       <div class="coins-card hidden" id="coinsCard">
@@ -429,6 +429,7 @@
   var couponCard = document.getElementById('couponCard');
   var couponCta = document.getElementById('couponCta');
   var couponAmountValue = document.getElementById('couponAmountValue');
+  var couponFine = document.getElementById('couponFine');
   var coinsCard = document.getElementById('coinsCard');
   var neonText = document.getElementById('neonText');
   var clock = document.getElementById('clock');
@@ -450,18 +451,18 @@
   var friends = 0;
 
   function spinRewardForCount(n){
-    if (n === 0) return 5000;
-    if (n === 1) return 4000;
-    if (n === 2) return 500;
+    if (n === 0) return 0;    // first spin: just the celebration, no money yet
+    if (n === 1) return 5000; // spin again...
+    if (n === 2) return 4000; // ...and again
     var extra = n - 2;
-    return Math.max(1, Math.floor(500 / Math.pow(5, extra)));
+    return Math.max(1, Math.floor(100 / Math.pow(3, extra - 1)));
   }
   function inviteRewardForCount(n){
-    if (n === 0) return 250;
-    if (n === 1) return 100;
-    if (n === 2) return 50;
+    if (n === 0) return 500;
+    if (n === 1) return 200;
+    if (n === 2) return 100;
     var extra = n - 2;
-    return Math.max(1, Math.floor(50 / Math.pow(2, extra)));
+    return Math.max(1, Math.floor(100 / Math.pow(2, extra)));
   }
   function addToTotal(amount){
     rawTotal = Math.min(rawTotal + amount, TARGET - 1); // never actually hits the goal
@@ -560,6 +561,9 @@
       var reward = spinRewardForCount(spinCount);
       spinCount += 1;
       couponAmountValue.textContent = reward.toLocaleString();
+      couponFine.textContent = reward === 0
+        ? '*아쉽지만 이번엔 0원! 한 번 더 돌리면 진짜 당첨금이 나와요 😏'
+        : '*10,000원을 모두 모아야 실제로 면제됩니다. 이번 당첨금은 자동으로 적립돼요.';
       pendingSpinReward = reward;
 
       setTimeout(function(){
@@ -574,7 +578,8 @@
     addToTotal(pendingSpinReward);
     updateCoinsUI();
     couponCard.classList.add('hidden');
-    wheelCard.classList.add('hidden');
+    wheelCard.classList.remove('dim');
+    spinBtn.disabled = false;
     coinsCard.classList.remove('hidden');
     fireConfetti(40, 1400);
   });
