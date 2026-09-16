@@ -184,8 +184,30 @@
     box-shadow:0 8px 18px -6px rgba(255,210,63,.55);
   }
 
+  /* ---------- neon Temu-style glow halo, shared by the main cards ---------- */
+  @keyframes neonChase{
+    0%{background-position:0% 50%;}
+    100%{background-position:300% 50%;}
+  }
+  .neon-frame{position:relative;isolation:isolate;}
+  .neon-frame::before{
+    content:"";
+    position:absolute;
+    inset:-4px;
+    border-radius:inherit;
+    background:linear-gradient(115deg,var(--gold),var(--accent-2),var(--accent),var(--gold));
+    background-size:300% 300%;
+    filter:blur(9px);
+    opacity:.8;
+    z-index:-1;
+    animation:neonChase 5s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .neon-frame::before{animation:none;background-position:0% 50%;}
+  }
+
   .wheel-card{
-    background:rgba(28,31,43,.9);
+    background:rgba(28,31,43,.94);
     border:1px solid var(--border);
     border-radius:22px;
     padding:18px 16px 20px;
@@ -217,6 +239,21 @@
     background:var(--surface-2);padding:9px;
     box-shadow:inset 0 0 0 2px var(--border), 0 10px 30px -10px rgba(0,0,0,.7);
   }
+  .wheel-outer::before{
+    content:"";
+    position:absolute;
+    inset:-10px;
+    border-radius:50%;
+    background:conic-gradient(from 0deg,var(--gold),var(--accent-2),var(--accent),var(--gold));
+    filter:blur(12px);
+    opacity:.85;
+    z-index:-1;
+    animation:wheelGlowSpin 3s linear infinite;
+  }
+  @keyframes wheelGlowSpin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){
+    .wheel-outer::before{animation:none;}
+  }
   .wheel-face{
     position:relative;width:100%;height:100%;border-radius:50%;
     background: conic-gradient(from -30deg,
@@ -238,13 +275,22 @@
     box-shadow:0 0 0 5px var(--surface-2), 0 6px 14px -4px rgba(0,0,0,.6);z-index:2;
   }
 
+  @keyframes neonPulse{
+    0%,100%{box-shadow:0 8px 18px -6px rgba(255,106,61,.6), 0 0 0 rgba(255,210,63,0);}
+    50%{box-shadow:0 8px 22px -4px rgba(255,106,61,.85), 0 0 26px 4px rgba(255,210,63,.55);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spin-btn, .coupon .cta, .invite-btn{animation:none!important;}
+  }
+
   .spin-btn{
     width:100%;max-width:260px;padding:13px 0;border:none;border-radius:999px;
     background:linear-gradient(180deg,#ff8a5c,var(--accent));color:#1c0d05;
     font-weight:900;font-size:15px;letter-spacing:.02em;cursor:pointer;
     box-shadow:0 8px 18px -6px rgba(255,106,61,.6);
+    animation:neonPulse 1.8s ease-in-out infinite;
   }
-  .spin-btn:disabled{opacity:.5;cursor:default;}
+  .spin-btn:disabled{opacity:.5;cursor:default;animation:none;}
 
   /* ---------- coupon card (mimics the real dark-pattern popup) ---------- */
   .coupon{
@@ -269,6 +315,7 @@
     background:linear-gradient(180deg,#ff8a5c,var(--accent));
     color:#fff;font-weight:900;font-size:15px;cursor:pointer;
     box-shadow:0 10px 20px -8px rgba(255,106,61,.7);
+    animation:neonPulse 1.8s ease-in-out infinite;
   }
   .coupon .fine{font-size:10px;color:#b3b3b3;margin-top:10px;line-height:1.5;}
 
@@ -314,6 +361,12 @@
     width:100%;padding:13px 0;border:none;border-radius:999px;margin-bottom:8px;
     background:linear-gradient(180deg,#ff8a5c,var(--accent));color:#1c0d05;
     font-weight:900;font-size:15px;cursor:pointer;
+    animation:neonPulse 1.8s ease-in-out infinite;
+  }
+  .wheel-locked-note{
+    text-align:center;font-size:11.5px;color:var(--muted);
+    background:var(--surface-2);border:1px solid var(--border);border-radius:12px;
+    padding:10px;margin-bottom:8px;line-height:1.5;
   }
   .claim-btn{
     width:100%;padding:13px 0;border:1px solid var(--border);border-radius:999px;
@@ -392,7 +445,7 @@
 
           <div class="neon" id="neonText">최고 혜택에 당첨되셨습니다</div>
 
-          <div class="wheel-card" id="wheelCard">
+          <div class="wheel-card neon-frame" id="wheelCard">
             <div class="eyebrow">직장인 전용 럭키 데이</div>
             <div class="timer">퇴근까지 남은 시간 <b id="clock">00:00:00</b></div>
             <div class="wheel-zone">
@@ -412,7 +465,7 @@
             <button class="spin-btn" id="spinBtn">돌리기</button>
           </div>
 
-          <div class="coupon hidden" id="couponCard">
+          <div class="coupon hidden neon-frame" id="couponCard">
             <div class="label">🎁 룰렛 당첨금</div>
             <div class="amount"><span>₩</span><span id="couponAmountValue">5,000</span></div>
             <div class="rows">
@@ -426,7 +479,7 @@
         </div>
       </div>
 
-      <div class="coins-card hidden" id="coinsCard">
+      <div class="coins-card hidden neon-frame" id="coinsCard">
         <h2>적립금 모아서 <span class="display" style="color:var(--gold)">야근 면제</span> 받기</h2>
         <div class="sub">목표 10,000원 · 친구를 초대할수록 더 쌓여요 (아마도)</div>
 
@@ -441,7 +494,8 @@
           <div class="stat"><b id="friendCount">0</b><span>초대한 친구</span></div>
         </div>
 
-        <button class="invite-btn respin" id="respinBtn">🎡 룰렛 한 번 더 돌리기!</button>
+        <button class="invite-btn respin" id="respinBtn">🎡 룰렛 돌려서 당첨금 받기!</button>
+        <div class="wheel-locked-note hidden" id="wheelLockedNote">🎡 룰렛은 다 썼어요! 이제부턴 친구를 초대해야 돈이 들어와요</div>
         <button class="invite-btn" id="inviteBtn">📤 친구에게 공유하기</button>
         <button class="claim-btn" id="claimBtn">면제 받기</button>
 
@@ -540,20 +594,75 @@
       requestAnimationFrame(tickConfetti);
     }
   }
+  var fireworkColors = ['#ffd23f','#ff6a3d','#ff3d6e','#5ad1c9','#c86bff','#ffffff'];
+  function spawnFirework(cx, cy){
+    if (reduceMotion) return;
+    var color = fireworkColors[Math.floor(Math.random()*fireworkColors.length)];
+    var count = 32 + Math.floor(Math.random()*10);
+    for (var i=0;i<count;i++){
+      var angle = (Math.PI*2*i)/count + Math.random()*0.2;
+      var speed = 2.4 + Math.random()*3.2;
+      particles.push({
+        type: 'firework',
+        x: cx, y: cy,
+        vx: Math.cos(angle)*speed,
+        vy: Math.sin(angle)*speed,
+        size: 2 + Math.random()*1.6,
+        color: color,
+        life: 1100 + Math.random()*400,
+        maxLife: 1100 + Math.random()*400
+      });
+    }
+    if (!confettiRunning){
+      confettiRunning = true;
+      requestAnimationFrame(tickConfetti);
+    }
+  }
+  function fireFireworks(bursts){
+    if (reduceMotion) return;
+    for (var i=0;i<bursts;i++){
+      (function(){
+        var delay = i*280 + Math.random()*150;
+        setTimeout(function(){
+          var cx = canvas.width * (0.2 + Math.random()*0.6);
+          var cy = canvas.height * (0.15 + Math.random()*0.35);
+          spawnFirework(cx, cy);
+        }, delay);
+      })();
+    }
+  }
+
   function tickConfetti(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     var alive = [];
     for (var i=0;i<particles.length;i++){
       var p = particles[i];
-      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= 16;
-      if (p.life > 0 && p.y < canvas.height + 30){
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot*Math.PI/180);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
-        ctx.restore();
-        alive.push(p);
+      if (p.type === 'firework'){
+        p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.vx *= 0.985; p.life -= 16;
+        if (p.life > 0){
+          var alpha = Math.max(0, p.life / p.maxLife);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+          ctx.fill();
+          ctx.restore();
+          alive.push(p);
+        }
+      } else {
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= 16;
+        if (p.life > 0 && p.y < canvas.height + 30){
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot*Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
+          ctx.restore();
+          alive.push(p);
+        }
       }
     }
     particles = alive;
@@ -623,6 +732,7 @@
     spinning = false;
     neonText.classList.add('reveal');
     fireConfetti(90, 2200);
+    fireFireworks(5);
     wheelCard.classList.add('dim');
 
     couponAmountValue.textContent = reward.toLocaleString();
@@ -708,8 +818,10 @@
   var inviteBtn = document.getElementById('inviteBtn');
   var claimBtn = document.getElementById('claimBtn');
   var tickerText = document.getElementById('tickerText');
+  var wheelLockedNote = document.getElementById('wheelLockedNote');
 
   var sharing = false;
+  var WHEEL_LOCK_AT = 9000; // once you've collected this much, the money-wheel shuts off
 
   function updateCoinsUI(){
     var pct = Math.min(99.99, (rawTotal / TARGET) * 100);
@@ -719,6 +831,10 @@
     remainTextEl.textContent = won(TARGET - rawTotal);
     pctTextEl.textContent = pct.toFixed(decimalsForPct) + '%';
     ringEl.style.background = 'conic-gradient(var(--gold) 0deg ' + (pct*3.6) + 'deg, var(--border) ' + (pct*3.6) + 'deg 360deg)';
+
+    var wheelLocked = rawTotal >= WHEEL_LOCK_AT;
+    respinBtn.classList.toggle('hidden', wheelLocked);
+    wheelLockedNote.classList.toggle('hidden', !wheelLocked);
   }
   updateCoinsUI();
 
