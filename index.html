@@ -111,6 +111,8 @@
       padding: 18px 16px 24px;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .topbar {
@@ -822,6 +824,11 @@
       .phone {
         width: 100vw;
         height: 100vh;
+        /* KakaoTalk's in-app browser (and mobile browsers in general) often
+           report 100vh taller than what's actually visible above their own
+           toolbar, which pushed the bottom button off-screen. 100dvh tracks
+           the real visible area instead. */
+        height: 100dvh;
         border-radius: 0;
       }
     }
